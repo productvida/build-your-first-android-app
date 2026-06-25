@@ -1,0 +1,60 @@
+# 04 · Working with Claude Code (or any AI coding agent)
+
+The agent is a teammate. Teammates do their best work with a **written brief, reusable playbooks, and a
+handoff doc.** This is the lightweight system that made it productive instead of chaotic.
+
+## 1. Give it a brief: `CLAUDE.md`
+Claude Code reads `CLAUDE.md` automatically and treats it as the rules of the repo. Keep it **short and
+current**. It should contain:
+- **What the app is** (one line) and **where files live**.
+- **Working agreements** — the non-negotiables (see below).
+- **How to run and test** locally, and **how to run the gate**.
+- **Scope** — and explicitly what the app is *not* (stops scope creep).
+
+A fill-in template is in [`../CLAUDE.md`](../CLAUDE.md).
+
+## 2. Working agreements that paid off
+- **Never claim "done" without a passing test run.** This single rule prevents most regressions.
+- **A browser pass ≠ the native app.** Verify device/network/system paths on a real device; **prove the
+  data landed** (don't trust "no error").
+- **Run the regression gate automatically before any build** — don't make the human ask.
+- **Agree on the approach first** — one sentence, then wait for go-ahead. Cheap, avoids big wrong turns.
+- **Bump the cache version after every change.**
+- **Commit locally; pushing/deploying/store-uploading is human-gated.** The agent preps; you pull the trigger.
+- **Bundle changes; don't deploy per tiny edit** (saves build minutes and noise).
+
+## 3. Reusable skills / playbooks
+Capture repeatable procedures as **skills** the agent can invoke — e.g. a **QA gate** runbook, a
+**security review** checklist, a **release** procedure, a **legal/privacy** review. Each is just a
+markdown playbook with: when to use it, the steps/checklist, and the output format. Benefits:
+- Consistency (the security review checks the same things every time).
+- You can run **adversarial / multi-angle reviews** (architecture, security, QA, legal) before building
+  anything risky — and merge the findings.
+
+A starter `qa-gate` skill folder is under [`../templates/.claude/skills/`](../templates/.claude/skills/).
+
+## 4. The session-handoff doc: `SESSION-STATE.md`
+AI sessions are stateless across days. A living **"read this first"** doc means every session — human or
+AI — starts oriented instead of re-deriving context. Keep at the top:
+- **What's shipped / live** (versions on web vs. the store).
+- **What's in flight** (unpushed commits, pending builds).
+- **What's next** + any **open decisions** waiting on you.
+- **Backlog** of small fixes with enough detail to act cold.
+
+Template: [`../templates/SESSION-STATE.md`](../templates/SESSION-STATE.md).
+
+## 5. Verify, then trust
+Have the agent **show its work**: run the gate and paste the verdict, screenshot the change, read the row
+back from the server. "It should work" is not "it works." The whole system above exists to make
+*verification cheap and automatic*, so "done" actually means done.
+
+## 6. Let the gate teach the agent
+When a bug slips through, don't just fix it — **add an assertion to the gate** so it can't return. Over
+time your gate encodes everything that ever bit you, and the agent inherits that hard-won caution for free.
+
+---
+
+### A good first prompt to your agent
+> "Read `CLAUDE.md` and everything in `docs/`. Then propose a one-paragraph plan to scaffold the app
+> described in `CLAUDE.md` — the single-folder offline-first structure, a service worker, a manifest, and
+> a stub regression gate. Wait for my go-ahead before writing code."

@@ -1,0 +1,30 @@
+# Capacitor native projects are regenerated from config — don't commit them
+android/
+ios/
+
+# Signing secrets — NEVER commit these
+*.keystore
+*.jks
+key.properties
+**/key.properties
+.env
+.env.*
+*.p12
+*.mobileprovision
+
+# Dependencies / build output
+node_modules/
+dist/
+build/
+.gradle/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.log
+
+# Local agent scratch
+.venv/
+__pycache__/
