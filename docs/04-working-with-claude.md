@@ -52,6 +52,15 @@ back from the server. "It should work" is not "it works." The whole system above
 When a bug slips through, don't just fix it — **add an assertion to the gate** so it can't return. Over
 time your gate encodes everything that ever bit you, and the agent inherits that hard-won caution for free.
 
+## 7. Use the right tool for the right job (incl. design)
+The coding agent is great at logic, structure, and shipping discipline — it's not always the fastest way
+to *design*. A pattern that works well: use an **AI design / mockup tool** (or a designer) to generate and
+polish a **design system** — a coherent set of colors, type, spacing, and components — then **port the
+tokens** into your no-build app as CSS variables (`--bg`, `--accent`, …) and have the coding agent wire
+them in. You get a considered visual language without hand-tuning hex codes one screen at a time. Keep the
+*tokens* as the single source of truth so design and code never drift. (Capture your own tool choices and
+prompts in a doc in your repo so the next session reuses them.)
+
 ---
 
 ### A good first prompt to your agent
