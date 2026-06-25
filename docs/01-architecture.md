@@ -40,8 +40,10 @@ effective (it can reason about the whole thing).
 >   into every record" habit above can blow up — catch it and surface the failure).
 > - **iOS (WKWebView/Safari) evicts it after ~7 days of non-use**, and OS storage pressure can wipe it.
 >   For a daily-use offline app, that means **users can lose their data**.
-> - **So: ship an export/import (backup) feature early** (download a JSON, restore from it). It's your
->   backup story, your migration path, and your only recovery when device storage is wiped.
+> - **Match the backup to the stakes — it's not always needed.** If losing the data would genuinely upset
+>   the user (lessons they built, a journal, anything irreplaceable), **ship an export/import early**
+>   (download a JSON, restore from it) — it's your backup story, migration path, and recovery when storage
+>   is wiped. For a **throwaway or easily-recreated** utility (a calculator, a one-off converter), skip it.
 > - When you outgrow a few MB or need structured/large data, **graduate to IndexedDB**.
 
 ## Offline-first (the service worker)
@@ -63,6 +65,13 @@ effective (it can reason about the whole thing).
   user-entered** data as hostile — render it with `textContent`/`createElement`, or escape it. Importing a
   backup file or a shared item and `innerHTML`-ing its fields is a classic **stored-XSS** hole. (Add
   "import a malformed/hostile file" to your test habits — see `docs/02`.)
+
+## Privacy by default (a feature, not an afterthought)
+With this architecture, **the default is that you collect nothing** — **no sign-up, no account, no email,
+no personal data ever leaves the device.** That's the strongest, simplest privacy story you can have (and
+the easiest to be honest about in a privacy policy). Say it plainly in-app and in your store listing —
+"no account, your data stays on your device" is a real differentiator. You only take on data collection,
+and its obligations, **when you deliberately add a backend** (below) — so don't, until you must.
 
 ## When to add a backend (resist at first)
 Start with **zero backend**. Everything local = no accounts, no privacy surface, no server bill, instant.

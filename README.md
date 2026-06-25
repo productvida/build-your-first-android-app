@@ -18,8 +18,10 @@ the Play Store can publish your **home address**).
   days) *before* you can even apply for production. → [doc 03](docs/03-release-and-app-stores.md#-the-timelines-that-surprise-people)
 - 🐛 **"Works in my browser, dead on the phone."** Downloads, share, clipboard, notifications and more
   silently behave differently in the native WebView. → [doc 02](docs/02-qa-and-webview-gotchas.md)
-- 💾 **Silent data loss.** localStorage isn't durable (iOS evicts it after ~7 days of non-use) — ship a
-  backup. → [doc 01](docs/01-architecture.md)
+- 💾 **Silent data loss.** localStorage isn't durable (iOS evicts it after ~7 days of non-use) — ship an
+  export/backup *if the data's worth keeping*. → [doc 01](docs/01-architecture.md)
+- 🔒 **Privacy by default.** No backend = no sign-up, no account, nothing collected — the simplest, most
+  honest privacy story. → [doc 01](docs/01-architecture.md)
 - 🤖 **Reinventing the agent workflow every session.** A brief, skills, and a handoff doc. → [doc 04](docs/04-working-with-claude.md)
 
 ---
