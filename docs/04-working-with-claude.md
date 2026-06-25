@@ -55,6 +55,13 @@ time your gate encodes everything that ever bit you, and the agent inherits that
 ---
 
 ### A good first prompt to your agent
-> "Read `CLAUDE.md` and everything in `docs/`. Then propose a one-paragraph plan to scaffold the app
-> described in `CLAUDE.md` — the single-folder offline-first structure, a service worker, a manifest, and
-> a stub regression gate. Wait for my go-ahead before writing code."
+Run this from your **new app folder** (after you've copied in `CLAUDE.md` + `templates/` and filled the
+placeholders). The `docs/` are reference — point the agent at this repo to read them, but you don't copy
+them into your app.
+> "Read my `CLAUDE.md`, and read the `docs/` in the ship-small-apps-with-claude playbook for context.
+> Then propose a one-paragraph plan to scaffold the app described in `CLAUDE.md` — the single-folder
+> offline-first structure, a service worker (with the cache-busting done right), a manifest, and a stub
+> regression gate. Wait for my go-ahead before writing code."
+
+---
+[← 03 Release & app stores](03-release-and-app-stores.md) · **04 Working with Claude** · [README](../README.md)

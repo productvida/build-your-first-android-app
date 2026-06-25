@@ -11,12 +11,46 @@ the Play Store can publish your **home address**).
 
 > This is a *guide + templates*, not a framework. No build step, no lock-in. Copy what helps.
 
+## What this saves you
+- 🏠 **Publishing your home address.** An *individual* Google Play account can show your personal address
+  publicly on the listing. → [doc 03](docs/03-release-and-app-stores.md#part-b--google-play-gotchas)
+- ⏳ **A two-week surprise.** New Play accounts must run a closed test (historically ~12 testers / ~14
+  days) *before* you can even apply for production. → [doc 03](docs/03-release-and-app-stores.md#-the-timelines-that-surprise-people)
+- 🐛 **"Works in my browser, dead on the phone."** Downloads, share, clipboard, notifications and more
+  silently behave differently in the native WebView. → [doc 02](docs/02-qa-and-webview-gotchas.md)
+- 💾 **Silent data loss.** localStorage isn't durable (iOS evicts it after ~7 days of non-use) — ship a
+  backup. → [doc 01](docs/01-architecture.md)
+- 🤖 **Reinventing the agent workflow every session.** A brief, skills, and a handoff doc. → [doc 04](docs/04-working-with-claude.md)
+
 ---
 
-## Who this is for
-- Solo devs, freelancers, and small teams building a focused tool (tracker, flashcards, utility…).
-- People using **Claude Code** (or any AI coding agent) who want a repo their agent can *read and follow*.
-- Anyone who's been burned by "it worked in my browser but broke in the app."
+## Quickstart (5 minutes)
+```bash
+# 1. Get the playbook
+git clone https://github.com/<you>/ship-small-apps-with-claude.git
+
+# 2. Start your app from the templates (the docs/ stay here as reference — you don't copy them)
+mkdir my-app && cd my-app
+cp ../ship-small-apps-with-claude/CLAUDE.md .
+cp ../ship-small-apps-with-claude/templates/SESSION-STATE.md .
+mkdir -p scripts && cp ../ship-small-apps-with-claude/templates/qa_regression.py scripts/
+mkdir -p .claude/skills && cp -r ../ship-small-apps-with-claude/templates/.claude/skills/qa-gate .claude/skills/
+```
+3. **Fill in the `<PLACEHOLDERS>`** in `CLAUDE.md` (app name, one-line scope, file paths).
+4. **Open Claude Code in `my-app/` and paste the first prompt:**
+   > "Read my `CLAUDE.md`, and read the `docs/` in the ship-small-apps-with-claude playbook for context.
+   > Then propose a one-paragraph plan to scaffold the app — single-folder offline-first structure, a
+   > service worker (cache-busting done right), a manifest, and a stub regression gate. Wait for my
+   > go-ahead before writing code."
+5. Build → **run the gate** → ship. Keep `SESSION-STATE.md` current so the next session starts oriented.
+
+> **Placeholder convention:** anything in `<ANGLE_BRACKETS>` is a placeholder — search the repo for `<`
+> and replace or delete it before you ship. Nothing in angle brackets should survive into your real project.
+
+**In a hurry?** Read [doc 02](docs/02-qa-and-webview-gotchas.md) — it's the one that saves you from
+shipping embarrassing bugs.
+
+---
 
 ## The 60-second pitch of the approach
 1. **Build offline-first, no framework, no build step.** One folder of HTML/CSS/JS + `localStorage`.
@@ -26,26 +60,25 @@ the Play Store can publish your **home address**).
 4. **Treat the AI agent as a teammate** with a written brief (`CLAUDE.md`), reusable skills, and a
    session-handoff doc so it picks up where it left off.
 
----
-
-## How to use this with Claude (the point)
-1. **Copy `CLAUDE.md`** (the template here) into your new project and fill in the placeholders.
-   Claude Code reads this file automatically and treats it as the project's rules.
-2. Skim the **`docs/`** — they're written to be read by *you and your agent*. Tell Claude:
-   > "Read `docs/` and `CLAUDE.md`, then help me scaffold the app described there."
-3. Copy the **`templates/`** you want (the QA gate, the session-handoff doc) and adapt them.
-4. Ship. Then keep `SESSION-STATE.md` updated so the next session (human or AI) starts oriented.
-
 ## What's inside
-| Path | What it gives you |
+
+**📖 Read these (reference — you don't copy them):**
+| Doc | What it gives you |
 |---|---|
-| [`CLAUDE.md`](CLAUDE.md) | A fill-in-the-blanks project brief your AI agent follows |
-| [`docs/01-architecture.md`](docs/01-architecture.md) | The no-build, offline-first, single-folder architecture |
+| [`docs/01-architecture.md`](docs/01-architecture.md) | The no-build, offline-first, single-folder architecture (+ the storage/backup traps) |
 | [`docs/02-qa-and-webview-gotchas.md`](docs/02-qa-and-webview-gotchas.md) | The executable gate + the "breaks only in the native app" inventory |
-| [`docs/03-release-and-app-stores.md`](docs/03-release-and-app-stores.md) | Release pipeline + Play/App Store gotchas (timelines, the address issue) |
+| [`docs/03-release-and-app-stores.md`](docs/03-release-and-app-stores.md) | Release pipeline + Play/App Store gotchas (timelines, the address issue, legal) |
 | [`docs/04-working-with-claude.md`](docs/04-working-with-claude.md) | Briefs, skills, session handoffs, working agreements |
+
+*Read in order: Architecture → QA → Release → Working with Claude.*
+
+**📋 Copy these into your project (then fill the `<PLACEHOLDERS>`):**
+| File | What it is |
+|---|---|
+| [`CLAUDE.md`](CLAUDE.md) | A fill-in-the-blanks project brief your AI agent follows automatically |
 | [`templates/qa_regression.py`](templates/qa_regression.py) | A regression-gate skeleton (Playwright) to adapt |
-| [`templates/SESSION-STATE.md`](templates/SESSION-STATE.md) | A session-handoff doc template |
+| [`templates/SESSION-STATE.md`](templates/SESSION-STATE.md) | A "read this first" session-handoff doc |
+| [`templates/.claude/skills/qa-gate/`](templates/.claude/skills/qa-gate/) | A reusable "is it safe to ship?" agent skill (→ `.claude/skills/`) |
 
 ---
 
@@ -54,6 +87,10 @@ the Play Store can publish your **home address**).
 on a real device — not just in a desktop browser.** Most "it broke in production" bugs are things
 that silently no-op inside the native WebView (downloads, share, clipboard, notifications) and look
 perfectly fine in Chrome. See [`docs/02`](docs/02-qa-and-webview-gotchas.md).
+
+## Contributing
+Found a gotcha we missed — a new WebView trap, a store-policy change, a footgun? **Issues and PRs
+welcome.** A living gotchas doc is only as good as the scars people add to it.
 
 ## License
 MIT — see [LICENSE](LICENSE). Use it, fork it, no attribution required (but appreciated).

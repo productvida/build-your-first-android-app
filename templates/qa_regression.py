@@ -24,17 +24,25 @@ def check(name, ok, detail=""):
     results.append((name, bool(ok), detail))
 
 # ── 1. STATIC checks on the source (fast, catch whole classes of bug) ──────────
-# Examples — replace with yours:
-check("native download path is guarded (not anchor-only)",
+# NOTE: substring presence is a HEURISTIC, not proof. "download" in source does not prove the
+# download is correctly guarded — real verification is the live check + the on-device pass.
+# Label heuristics honestly so a green run never implies coverage you didn't actually run.
+check("[heuristic] source mentions a native-vs-web branch for downloads",
       "isNativePlatform" in APPJS and "download" in APPJS,
-      "blob <a download> silently fails in the WebView — needs a native branch")
+      "blob <a download> silently fails in the WebView — verify the native branch for real on a device")
+
+# CSP must allow every external host the app calls (a missing one silently blocks fetch in the WebView).
+# Make the "not configured yet" state VISIBLE — fail it rather than skipping silently.
 csp = (APP / "index.html").read_text()
-for host in ["<every external host your app calls>"]:
-    if host.startswith("<"):  # placeholder — delete this guard once you fill it in
-        break
+HOSTS = []  # <-- list every external host your app calls, e.g. ["api.example.com"]
+if not HOSTS:
+    check("CSP host check is configured", False, "list your hosts in HOSTS[] to enable this check")
+for host in HOSTS:
     check(f"CSP allows {host}", host in csp, "a missing host silently blocks fetch in the WebView")
-check("no service-role / secret keys committed in the client",
-      "service_role" not in APPJS, "anon/public keys only on the client")
+
+# No privileged/secret keys in the client (only public/anon keys may ship).
+check("no obvious secret keys committed in the client",
+      "service_role" not in APPJS and "secret_key" not in APPJS, "ship only public/anon keys client-side")
 
 # ── 2. LIVE checks: drive the real app in a headless browser ───────────────────
 import os

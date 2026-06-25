@@ -6,27 +6,39 @@ sometimes their privacy) because they found out too late.
 > ⚠️ Store policies change constantly. Everything below is "what to check," not legal advice —
 > **verify the current policy** on the Google Play / Apple developer sites before you rely on it.
 
+**In this doc:** [A · Pipeline](#part-a--a-repeatable-release-pipeline) · [B · Google Play](#part-b--google-play-gotchas) · [C · Apple](#part-c--apple-app-store-ifwhen-you-go-there) · [D · Privacy & legal](#part-d--privacy--legal-hygiene-cheap-insurance)
+
 ---
 
 ## Part A — A repeatable release pipeline
-Make releasing a **single boring script**, not a hand-run ritual you get wrong at midnight. The pipeline
-should, in order:
+Make releasing a **single boring script**, not a hand-run ritual you get wrong at midnight:
+
+```
+  bump version (all the places)  →  require a changelog entry  →  bump SW cache
+        →  cap sync  →  RUN THE GATE (abort on fail)  →  build + sign
+        →  verify it's signed  →  drop the artifact somewhere obvious
+        →  🔒 STOP. Print the human steps (git push / store upload).  ← never automated
+```
+
+In words, the script should:
 
 1. **Bump the version in every place it lives, consistently.** A web/Capacitor app usually has the
-   version in *three* spots: the web app (a JS constant + a `version.json`), and the native build file
+   version in *three* spots: the web app (a JS constant + a `version.json`), and the native build
    (`versionName` + an integer `versionCode` that must increase every upload). Keep them in lockstep.
+   ⚠️ **Capacitor regenerates `android/`** (it's gitignored), so don't hand-edit the native version where
+   `cap sync` will clobber it — drive it from a source of truth (e.g. `capacitor.config`) or have the
+   script patch `android/app/build.gradle` *after* `cap sync`.
 2. **Require a human-written changelog entry first** — the script should refuse to build without it
    (the agent shouldn't invent release notes).
-3. **Bump the service-worker cache version.**
+3. **Bump the service-worker cache version** (and serve `sw.js` `no-cache` — see `docs/01`).
 4. **Sync the web assets into the native project** (`npx cap sync`).
 5. **Run the regression gate — and ABORT the build if it fails.**
 6. **Build + sign** the release artifact.
 7. **Verify the artifact is actually signed**, then drop it somewhere obvious.
-8. **Print the remaining HUMAN steps** — and stop. The script should **never** push git or upload to a
+8. **Print the remaining HUMAN steps — and stop.** The script should **never** push git or upload to a
    store on its own. Those stay human-gated.
 
-A skeleton is in [`../templates/`](../templates). Keep signing keys **out of the repo** (see `.gitignore`)
-and document where they live separately.
+Keep signing keys **out of the repo** (see `.gitignore`) and document where they live separately.
 
 ### Web vs. app drift
 Your **website/PWA auto-deploys** on push; your **store app only updates per build**. So the web is
@@ -51,9 +63,11 @@ What to do:
   trap for solo publishers.
 
 ### ⏳ The timelines that surprise people
-- **New personal developer accounts** must run a **closed test with a minimum number of testers
-  (commonly ~12) for ~14 continuous days** *before* you can even apply for production access. That's a
-  two-week gate **before** your first public launch — plan for it; recruit testers early.
+- **New personal developer accounts** must run a **closed test with a minimum number of testers for a
+  number of continuous days** *before* you can even apply for production access — historically **~12
+  testers for ~14 days**. ⚠️ **Google has changed this threshold more than once — confirm the current
+  tester count and duration in the Play Console before planning a launch.** Either way it's a multi-day
+  gate *before* your first public release: recruit testers early.
 - **Identity verification** of a new developer account can take days.
 - **App review** ranges from hours to several days, and is typically **slowest on your first submission**
   and after big changes. Don't schedule a launch announcement for "the day I upload."
@@ -71,8 +85,9 @@ If your app has accounts, Play requires a **working data-deletion path** (often 
 ---
 
 ## Part C — Apple App Store (if/when you go there)
-- A **paid developer program** membership is required; **Sign in with Apple** may be required if you offer
-  any third-party/social login.
+- A **paid developer program** membership is required.
+- **Sign in with Apple** *may* be required when you offer third-party/social login — Apple's rule here
+  (Guideline 4.8) has been loosened over time, so **check the current 4.8 wording** rather than assuming.
 - Review tends to be stricter; "thin" wrapper apps and anything that looks like a website-in-a-box get
   scrutiny — make it feel like a real app (offline, native affordances).
 - Same address/identity considerations apply for individuals vs. organizations.
@@ -95,3 +110,6 @@ If your app has accounts, Play requires a **working data-deletion path** (often 
   takedown path, liability disclaimer) — get a lawyer for that and for any children's-audience question.
 - **Anything material — a privacy policy rewrite, a ToS, children's-data handling — get a qualified
   lawyer to sign off.** AI is great for spotting issues and drafting; it is not your lawyer.
+
+---
+[← 02 QA & WebView](02-qa-and-webview-gotchas.md) · **03 Release & app stores** · [04 Working with Claude →](04-working-with-claude.md)
