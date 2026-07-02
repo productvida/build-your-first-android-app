@@ -22,6 +22,8 @@ the Play Store can publish your **home address**).
   export/backup *if the data's worth keeping*. → [doc 01](docs/01-architecture.md)
 - 🔒 **Privacy by default.** No backend = no sign-up, no account, nothing collected — the simplest, most
   honest privacy story. → [doc 01](docs/01-architecture.md)
+- 🔗 **Sharing without a server.** Put the whole payload in the link/QR and decode it client-side — a
+  share/growth loop with no backend, no accounts, no PII. → [doc 01](docs/01-architecture.md#sharing-without-a-backend-the-link-is-the-database)
 - 🤖 **Reinventing the agent workflow every session.** A brief, skills, and a handoff doc. → [doc 04](docs/04-working-with-claude.md)
 
 ---

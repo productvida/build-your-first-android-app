@@ -19,6 +19,12 @@ A fill-in template is in [`../CLAUDE.md`](../CLAUDE.md).
   data landed** (don't trust "no error").
 - **Run the regression gate automatically before any build** — don't make the human ask.
 - **Agree on the approach first** — one sentence, then wait for go-ahead. Cheap, avoids big wrong turns.
+- **Spec before code for anything complex.** For a big feature, write the problem, the edge cases, and
+  what's explicitly *out of scope* first, then let the agent plan against it. Small fixes skip this — but
+  complex work built straight from a vague ask is exactly where rework hides.
+- **You can't outsource direction.** The agent builds whatever you point it at — vague in, vague out.
+  Deciding what you actually want (and debating it when you have an opinion) is *your* job; that's where
+  the real thinking is, and it's the part that stays yours.
 - **Bump the cache version after every change.**
 - **Commit locally; pushing/deploying/store-uploading is human-gated.** The agent preps; you pull the trigger.
 - **Bundle changes; don't deploy per tiny edit** (saves build minutes and noise).

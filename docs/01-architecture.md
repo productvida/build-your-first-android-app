@@ -80,6 +80,27 @@ When you do, keep it **optional and additive** — the app must still work offli
 Treat that as the biggest architectural change you'll make and design it deliberately (and review the
 security of any access-control / row-level rules — see `docs/02`).
 
+## Sharing without a backend (the link *is* the database)
+"Let two people share a thing" sounds like it needs a server. Often it doesn't. **Put the whole payload in
+the URL `#fragment` and decode it client-side** — the link (and its QR) *is* the data. A tiny static page
+renders a preview for people who don't have the app yet; people who do get it imported locally. Zero
+hosting, zero accounts, **no personal data, and you never become a host of user content** (a real legal
+line — see `docs/03`). The craft that makes it solid:
+- **Nothing leaks.** The `#fragment` is never sent to the server — but a page can still read it, so
+  **strip it with `history.replaceState` the instant you've decoded it**, and keep third-party analytics
+  *off* that page. Then shared content truly never leaves the device.
+- **One decoder, byte-identical**, shared by the app and the preview page — so a per-store app build and a
+  per-push web page can't drift into "can't read each other's links." Version the payload (`v=1`) and
+  evolve it **additive-only** (consumers ignore unknown keys).
+- **Send only what can't be rebuilt.** Ship the user's edits/corrections verbatim; re-derive anything that
+  comes from bundled data (e.g. dictionary defaults) on the other side. Smaller links, no lost corrections.
+- **Fitting a QR:** compress (DEFLATE) and encode in the QR's **alphanumeric** alphabet (a URL-safe base
+  like Base43) — roughly ~20% more capacity than base64-in-a-byte-stream. Anything that still won't fit →
+  fall back to a **link only** (links carry any size); never emit an unscannable QR.
+
+Reach for a real backend only when the feature *fundamentally* needs shared server state — multi-device
+sync, revoke-after-send, per-recipient tracking — not just "exchange a thing between two devices."
+
 ## The principle
 > Optimize for *changeability* and *shippability*, not for how impressive the stack looks.
 > A boring, legible app you can ship and verify beats a clever one you can't.

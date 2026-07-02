@@ -97,13 +97,21 @@ If your app has accounts, Play requires a **working data-deletion path** (often 
 ## Part D — Privacy & legal hygiene (cheap insurance)
 - **Collect as little as possible.** "Everything stays on the device" is the strongest, simplest privacy
   story — and a real asset if you're ever acquired (no data-liability mess).
+- **Know your liability posture.** A sole proprietorship or an *individual* developer account is legally
+  *you* — there is **no company shield**, so a data breach, an IP/defamation claim over shared content, or
+  a consumer claim can reach your **personal** assets. A no-accounts, on-device app keeps that risk tiny.
+  The moment you add **accounts, user-generated content, or payments**, ask a local lawyer/accountant
+  whether to move it into a **limited-liability company** (LLC / Ltd / local equivalent) *first* — that's
+  the point where the shield starts to matter.
 - **Your privacy policy must match what the app actually does — today.** If you use *any* analytics, a
   feedback form, or third-party hosting, **disclose it** (name the processors, the data, the basis). The
   #1 legal risk for small apps is a policy that *misrepresents* (e.g. "we collect nothing" while running
   session-replay analytics).
-- **In the EU**, analytics that set identifiers generally need **consent**; personal data has obligations
-  (lawful basis, access, **deletion**, processor agreements, EU data residency). Email-only + magic-link
-  is a clean, minimal posture if you must collect anything.
+- **In the EU**, analytics that set identifiers generally need **consent** — in practice: ship an
+  **opt-in banner that gates the analytics** (it loads only after "Accept"), or use **cookieless
+  analytics** (Plausible/Umami/…) and skip the banner. Personal data has obligations (lawful basis,
+  access, **deletion**, processor agreements, EU data residency). Email-only + magic-link is a clean,
+  minimal posture if you must collect anything.
 - **Attribution:** if you bundle open-data/dictionaries/assets under licenses like CC BY-SA, put a
   **user-visible credit** somewhere (about screen / policy).
 - **User-generated content** that's shared to others needs **Terms of Service** (rights warranty, a

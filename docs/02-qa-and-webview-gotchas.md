@@ -65,6 +65,13 @@ separate focused pass and merge the findings. The security one alone routinely c
 over-permissive **access-control rule** that exposes everyone's data, or a public client key doing
 privileged things).
 
+Two things make this pass punch above its weight — and they apply to **bug-hunting**, not just design:
+- **Use a *fresh* reviewer, not the agent that wrote the code.** The builder is attached to its own
+  decisions and will defend them; an independent reviewer with no stake finds what the author rationalized
+  away. Most of the best catches come from "someone" seeing it cold.
+- **Give each reviewer its own brief/skill** (a `security-review`, a `legal-review`) so it looks through
+  *one* lens hard instead of one generalist glance — then run them in parallel and merge.
+
 ## Don't silently cap coverage
 If a check samples, truncates, or skips something, **say so** in the output (and prefer a *failing*
 "not configured yet" check over a silent skip). A green check that quietly tested 3 of 50 cases — or
