@@ -38,6 +38,11 @@ In words, the script should:
 8. **Print the remaining HUMAN steps — and stop.** The script should **never** push git or upload to a
    store on its own. Those stay human-gated.
 
+⚠️ **If the script (or agent) commits, stage the exact release files by name — never `git add -A`.**
+A repo-wide add sweeps in whatever scratch happens to be lying around (test dumps, half-finished docs,
+local notes) and welds it into your release commit. This one has actually bitten: an innocent-looking
+`--commit` flag that `git add -A`'d turned a clean version bump into a grab-bag commit.
+
 Keep signing keys **out of the repo** (see `.gitignore`) and document where they live separately.
 
 ### Web vs. app drift

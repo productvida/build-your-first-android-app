@@ -25,6 +25,9 @@ A fill-in template is in [`../CLAUDE.md`](../CLAUDE.md).
 - **You can't outsource direction.** The agent builds whatever you point it at — vague in, vague out.
   Deciding what you actually want (and debating it when you have an opinion) is *your* job; that's where
   the real thinking is, and it's the part that stays yours.
+- **A native-plugin change isn't done until you've read the plugin's native source.** Trace the
+  delivery chain (permissions, flags, OS deferrals like Doze) — a passing gate + correct JS proves
+  nothing about the native path. The war story is in [doc 02](02-qa-and-webview-gotchas.md#native-plugins-read-the-source-trace-the-whole-chain).
 - **Bump the cache version after every change.**
 - **Commit locally; pushing/deploying/store-uploading is human-gated.** The agent preps; you pull the trigger.
 - **Bundle changes; don't deploy per tiny edit** (saves build minutes and noise).

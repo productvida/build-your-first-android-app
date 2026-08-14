@@ -58,6 +58,20 @@ Before you trust a store build, do a **manual pass on a physical device** for ex
 WebView-divergent things above: downloads/share, notifications firing, the back button, deep links,
 TTS/audio, importing a backup. The gate runs a desktop browser and *structurally cannot* see these.
 
+## Native plugins: read the source, trace the whole chain
+When a change touches a **native plugin** (notifications, share, filesystem, back button, TTS…), do not
+reason from the JS API surface — **read the plugin's native (Java/Swift) source** in `node_modules` and
+trace the **end-to-end delivery path**, confirming every link: permission granted? channel importance?
+the right OS scheduling mode? battery-optimization exemptions?
+
+The scar that taught this: a daily reminder kept dying overnight. The "fix" granted the exact-alarm
+permission — and the reminder still never fired, because the plugin only uses the OS's
+allow-while-idle scheduling when a separate flag is set. Without it, the alarm fell back to a mode that
+**Doze quietly defers until morning**. The gate passed, the JS was "correct," and the answer was one
+flag sitting in the plugin's Java the whole time. Symptom-level fixes on native paths *feel* done and
+aren't — the chain is only verified when you've walked every link against the source. (This is also a
+great job for a **fresh reviewer** with its own brief — see below.)
+
 ## Multi-angle review (optional but powerful)
 For anything risky (a new backend, auth, sharing user content), review the design from several lenses
 *before building*: **architecture, security, QA, and legal**. With an AI agent you can run each as a
