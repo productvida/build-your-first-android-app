@@ -31,7 +31,7 @@ the Play Store can publish your **home address**).
 ## Quickstart (5 minutes)
 ```bash
 # 1. Get the playbook
-git clone https://github.com/<you>/ship-small-apps-with-claude.git
+git clone https://github.com/productvida/ship-small-apps-with-claude.git
 
 # 2. Start your app from the templates (the docs/ stay here as reference — you don't copy them)
 mkdir my-app && cd my-app
