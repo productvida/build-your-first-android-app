@@ -1,4 +1,11 @@
-# Ship small apps with Claude
+# Build your first Android app
+
+[![Docs](https://img.shields.io/badge/docs-4%20guides-blue)](docs/)
+[![Changelog](https://img.shields.io/badge/changelog-keep%20a%20changelog-orange)](CHANGELOG.md)
+[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+
+> **What's new?** See the [CHANGELOG](CHANGELOG.md) or the [Releases](https://github.com/productvida/build-your-first-android-app/releases).
+> Want to add a scar of your own? [CONTRIBUTING.md](CONTRIBUTING.md).
 
 A field-tested playbook for building and shipping **small, installable apps** — offline-first
 web apps (PWAs) that you can wrap into real **Android/iOS store apps** — with **Claude Code** as
@@ -18,6 +25,16 @@ the Play Store can publish your **home address**).
   days) *before* you can even apply for production. → [doc 03](docs/03-release-and-app-stores.md#-the-timelines-that-surprise-people)
 - 🐛 **"Works in my browser, dead on the phone."** Downloads, share, clipboard, notifications and more
   silently behave differently in the native WebView. → [doc 02](docs/02-qa-and-webview-gotchas.md)
+- 🔙 **Back closing your whole app.** Chrome on Android **silently skips** history entries you pushed
+  without user activation, and one edge swipe reaches your app **twice**. Cost us five wrong fixes.
+  → [doc 02](docs/02-qa-and-webview-gotchas.md#the-back-navigation-trap-the-one-that-cost-us-five-attempts)
+- 🔢 **Burning version numbers.** Play consumes a `versionCode` **on upload, permanently** — even for
+  internal testing, even if you discard it. Upload to **internal testing first**, test the real signed
+  build yourself, then promote. → [doc 03](docs/03-release-and-app-stores.md#-upload-to-internal-testing-first-then-promote)
+- 📐 **The edge-to-edge advisory that won't go away.** Upgrading your status-bar plugin does **not** clear
+  it; the deprecated calls are still in the bytecode. → [doc 03](docs/03-release-and-app-stores.md)
+- 🚦 **A green gate that was actually red.** We piped our test gate into `grep` — and `grep` exits 0 when
+  it finds the word "FAIL", so a failing build shipped. → [doc 04](docs/04-working-with-claude.md)
 - 💾 **Silent data loss.** localStorage isn't durable (iOS evicts it after ~7 days of non-use) — ship an
   export/backup *if the data's worth keeping*. → [doc 01](docs/01-architecture.md)
 - 🔒 **Privacy by default.** No backend = no sign-up, no account, nothing collected — the simplest, most
@@ -31,18 +48,18 @@ the Play Store can publish your **home address**).
 ## Quickstart (5 minutes)
 ```bash
 # 1. Get the playbook
-git clone https://github.com/productvida/ship-small-apps-with-claude.git
+git clone https://github.com/productvida/build-your-first-android-app.git
 
 # 2. Start your app from the templates (the docs/ stay here as reference — you don't copy them)
 mkdir my-app && cd my-app
-cp ../ship-small-apps-with-claude/CLAUDE.md .
-cp ../ship-small-apps-with-claude/templates/SESSION-STATE.md .
-mkdir -p scripts && cp ../ship-small-apps-with-claude/templates/qa_regression.py scripts/
-mkdir -p .claude/skills && cp -r ../ship-small-apps-with-claude/templates/.claude/skills/qa-gate .claude/skills/
+cp ../build-your-first-android-app/CLAUDE.md .
+cp ../build-your-first-android-app/templates/SESSION-STATE.md .
+mkdir -p scripts && cp ../build-your-first-android-app/templates/qa_regression.py scripts/
+mkdir -p .claude/skills && cp -r ../build-your-first-android-app/templates/.claude/skills/qa-gate .claude/skills/
 ```
 3. **Fill in the `<PLACEHOLDERS>`** in `CLAUDE.md` (app name, one-line scope, file paths).
 4. **Open Claude Code in `my-app/` and paste the first prompt:**
-   > "Read my `CLAUDE.md`, and read the `docs/` in the ship-small-apps-with-claude playbook for context.
+   > "Read my `CLAUDE.md`, and read the `docs/` in the build-your-first-android-app playbook for context.
    > Then propose a one-paragraph plan to scaffold the app — single-folder offline-first structure, a
    > service worker (cache-busting done right), a manifest, and a stub regression gate. Wait for my
    > go-ahead before writing code."

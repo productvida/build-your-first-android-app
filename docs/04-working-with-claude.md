@@ -61,6 +61,56 @@ back from the server. "It should work" is not "it works." The whole system above
 When a bug slips through, don't just fix it — **add an assertion to the gate** so it can't return. Over
 time your gate encodes everything that ever bit you, and the agent inherits that hard-won caution for free.
 
+## 7. Make the gate structural, not disciplinary
+
+A quality gate you *remember* to run is not a gate. Ours is now a **pre-push hook**, because discipline
+failed exactly once and that was enough:
+
+**A build that FAILED the gate reached production.** The gate ran, was correct, and printed
+`VERDICT: FAIL` — but it had been chained into the push with `&&` after a `grep`, and **`grep` exits 0
+when it finds the word "FAIL"**. A failing gate read as success.
+
+```bash
+# ✗ WRONG — a pipeline reports the exit status of the LAST command
+python qa_regression.py | grep -E "FAIL|VERDICT" && git push
+
+# ✓ RIGHT — the exit code is the only thing that decides
+python qa_regression.py > /tmp/gate.log 2>&1 || { tail -20 /tmp/gate.log; exit 1; }
+```
+
+**Never pipe your gate.** Then put it in `.git/hooks/pre-push` so it cannot be forgotten —
+[`templates/install-git-hooks.sh`](../templates/install-git-hooks.sh) is ours, with a documented
+`SKIP_GATE=1` escape hatch and an automatic skip for docs-only pushes. `.git/hooks/` is not versioned, so
+ship an *installer* in the repo, and **test the hook by injecting a deliberate failure** — an unproven
+hook is theatre.
+
+## 8. Verify the agent's claims about your own codebase
+
+Agents (and humans) write confident, wrong things about code. From one planning session on a ~5,000-line
+file, an adversarial review found **five factual errors**, each a `grep` away:
+
+- A named function that **exists but is the wrong one** (`ensureLang` was a dictionary loader, not the
+  state loader) — an implementer following the plan edits the wrong place and the failure is unguessable.
+- "There are exactly four places X happens" — there were five, and one of the four was **unreachable**.
+- An invented constraint ("these objects must stay byte-identical") that a 10-second read disproved, and
+  which would have blocked a *different* planned feature.
+
+**Cheap habits that catch all of it:** grep every symbol before writing it into a plan; enumerate call
+sites with a command instead of from memory; and trace the *in-session* path, not just the reload path.
+
+**Also: agents are wrong sometimes, so verify before acting.** Of one design review's claims we rejected
+two after checking — and *recorded the rejection*, so nobody re-raises them.
+
+## 9. Debug logs must outlive the crash they diagnose
+
+When a bug **kills the page** (tab or PWA closing), a log in `sessionStorage` dies with it and can only
+ever show you the steps *before* the failure. Use **`localStorage`**, behind an opt-in flag
+(`/app/#mydebug`) so no real user is affected, and remove it once the bug is understood.
+
+Same idea, stated generally: **when you cannot reproduce a bug, stop guessing and go get the evidence.**
+Four of our five back-navigation fixes were reasoned from simulations that all passed. The thing that
+finally moved us forward was a screen recording plus a persistent on-device log.
+
 ## 7. Use the right tool for the right job (incl. design)
 The coding agent is great at logic, structure, and shipping discipline — it's not always the fastest way
 to *design*. A pattern that works well: use an **AI design / mockup tool** (or a designer) to generate and
@@ -76,7 +126,7 @@ prompts in a doc in your repo so the next session reuses them.)
 Run this from your **new app folder** (after you've copied in `CLAUDE.md` + `templates/` and filled the
 placeholders). The `docs/` are reference — point the agent at this repo to read them, but you don't copy
 them into your app.
-> "Read my `CLAUDE.md`, and read the `docs/` in the ship-small-apps-with-claude playbook for context.
+> "Read my `CLAUDE.md`, and read the `docs/` in the build-your-first-android-app playbook for context.
 > Then propose a one-paragraph plan to scaffold the app described in `CLAUDE.md` — the single-folder
 > offline-first structure, a service worker (with the cache-busting done right), a manifest, and a stub
 > regression gate. Wait for my go-ahead before writing code."

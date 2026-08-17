@@ -1,0 +1,53 @@
+name: "🐛 A gotcha to add"
+description: Something that bit you shipping a small app to a store, and what you'd do instead.
+title: "[gotcha] "
+labels: ["gotcha"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This playbook is a collection of scars. The bar is: **it happened to you**, it **wasn't obvious**,
+        and there's a **concrete fix**. See [CONTRIBUTING.md](../blob/main/CONTRIBUTING.md).
+  - type: textarea
+    id: symptom
+    attributes:
+      label: The symptom
+      description: What did you actually see? Lead with this — people scan for the symptom they're hitting.
+      placeholder: "Back button closed the whole app instead of the dialog, but only on Android."
+    validations:
+      required: true
+  - type: textarea
+    id: cause
+    attributes:
+      label: The cause, once you found it
+    validations:
+      required: true
+  - type: textarea
+    id: fix
+    attributes:
+      label: The fix
+      description: A snippet or command beats prose.
+    validations:
+      required: true
+  - type: textarea
+    id: why-hidden
+    attributes:
+      label: Why didn't a normal test catch it?
+      description: >
+        The most valuable field here. If your browser tests passed while the device failed, say why —
+        that reasoning is what saves the next person days.
+  - type: input
+    id: env
+    attributes:
+      label: Where it happened
+      placeholder: "Android 16 / Chrome PWA / Capacitor 8 / Samsung"
+  - type: dropdown
+    id: doc
+    attributes:
+      label: Which doc should it go in?
+      options:
+        - "01 — architecture"
+        - "02 — QA & WebView gotchas"
+        - "03 — release & app stores"
+        - "04 — working with Claude"
+        - "Not sure"

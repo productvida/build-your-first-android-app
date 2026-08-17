@@ -1,0 +1,25 @@
+name: "✏️ A correction"
+description: Something here is wrong, out of date, or unclear.
+title: "[fix] "
+labels: ["correction"]
+body:
+  - type: input
+    id: where
+    attributes:
+      label: Where
+      placeholder: "docs/03-release-and-app-stores.md — the versionCode section"
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What's wrong
+      description: >
+        Store policies and platform behaviour change. If something no longer matches reality, that's worth
+        an issue on its own — stale guidance is worse than none.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence (a link, a console screenshot, a build log)

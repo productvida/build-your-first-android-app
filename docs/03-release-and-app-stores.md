@@ -77,6 +77,82 @@ What to do:
 - **App review** ranges from hours to several days, and is typically **slowest on your first submission**
   and after big changes. Don't schedule a launch announcement for "the day I upload."
 - **`versionCode` must strictly increase** every upload, or the upload is rejected.
+- **A `versionCode` is burned ON UPLOAD, permanently — even if you never publish that build.** Discard the
+  draft, delete the release, upload only to internal testing: the number is still spent forever. So
+  **every device-test cycle costs you a code**. Building an AAB locally is free; uploading commits the
+  number. Plan for gaps in your sequence and don't be precious about them.
+
+### ✅ Upload to internal testing FIRST, then promote
+
+The workflow that saves the most pain, and it is not obvious from the Console:
+
+1. **Upload to internal testing.** It is effectively instant — no review wait — and it installs the
+   **real signed build** on your own device, which is the only way to test the artifact you will actually
+   ship (not a debug build, not a browser).
+2. **Test it yourself there.** Do your whole native pass on that install.
+3. **Promote the same build** to closed/beta, then production. You promote the artifact you already
+   tested rather than uploading a fresh one and hoping.
+
+This pairs with the burn rule above: each round of "upload → test → find a bug → fix" costs one
+`versionCode`, so bump it for **every** recut even when the version *name* is unchanged
+(e.g. `1.3.3 (30)` tested → two fixes → ship as `1.3.3 (31)`).
+
+### 📱 Put an emulator in the loop (not a replacement for a device)
+
+If you only test in a desktop browser and on your own phone, you have a gap: **Chrome-on-Android
+behaviour**. Create an AVD with a **Google Play system image** — it ships real Chrome, which is where
+PWA-specific bugs live (see [the back-navigation trap](02-qa-and-webview-gotchas.md#the-back-navigation-trap-the-one-that-cost-us-five-attempts)).
+
+```bash
+export ANDROID_HOME="$HOME/Library/Android/sdk"
+export JAVA_HOME="<Android Studio>/Contents/jbr/Contents/Home"   # sdkmanager needs JDK 11+; system java is often 8
+sdkmanager "system-images;android-36;google_apis_playstore;arm64-v8a"
+avdmanager create avd -n test -k "system-images;android-36;google_apis_playstore;arm64-v8a" -d pixel_7
+emulator -avd test -no-snapshot-load -no-audio -no-boot-anim &
+adb shell input swipe 0 900 400 900 120     # the left-edge BACK GESTURE — what a headless browser cannot fake
+```
+
+⚠️ **It closes the browser-behaviour gap, not the hardware gap.** An emulator will not reproduce OEM
+battery optimisation killing your alarms, real TTS voices, or true touch latency. Keep the physical-device
+pass.
+
+### 📐 The edge-to-edge advisory (targetSdk 35+) — upgrading your plugin does NOT clear it
+
+From Android 15, apps targeting SDK 35+ draw **edge-to-edge** by default, and Play flags an advisory:
+
+> *Edge-to-edge may not display for all users … Alternatively, call `enableEdgeToEdge()` for Kotlin or
+> `EdgeToEdge.enable()` for Java for backward compatibility.*
+
+The trap: the advisory is triggered by **deprecated calls in the bytecode**
+(`Window.setStatusBarColor`, `View.setSystemUiVisibility`). If a plugin makes them, **upgrading that
+plugin does not help** — the calls are still there, merely wrapped in `@SuppressWarnings`. We upgraded a
+status-bar plugin to its latest major and the advisory stayed exactly where it was.
+
+**What actually clears it:** remove the plugin and call `EdgeToEdge.enable(this)` yourself, letting your
+own CSS handle insets via `env(safe-area-inset-*)` with `viewport-fit=cover`. Verify by scanning the
+built artifact rather than trusting the changelog:
+
+```bash
+unzip -o app-debug.apk 'classes*.dex' -d /tmp/dex
+strings -a /tmp/dex/classes*.dex | grep -x 'setStatusBarColor'      # expect: only androidx's own classes
+```
+
+Two further scars from doing exactly this:
+
+- **If your framework swaps the Activity theme during `super.onCreate()`** (Capacitor does), call
+  `EdgeToEdge.enable()` **after** `super.onCreate()`, not before as the androidx docs suggest. It touches
+  `getDecorView()`, which forces decor creation and **bakes in whatever theme is current** — for us that
+  froze the splash theme for the whole session, painting a white band with a stretched logo above the app.
+- **Don't let your framework's inset handling fight your CSS.** If you already use
+  `env(safe-area-inset-*)`, a framework that pads the WebView's *parent* and zeroes the insets it forwards
+  will produce a visible band and a jumping keyboard. Check for an "insets handling" option and turn it off.
+
+### 🔢 Don't advertise a new version on the web before the build is live
+
+If your web app checks a hosted `version.json` to nudge users to update, **pushing a higher `versionCode`
+before the build is actually on Play tells real users to update to something that does not exist.** When
+you deploy web and store separately, advance the version **name** on the web if you like, but hold the
+**code** until the upload lands.
 
 ### 📋 Data Safety form (must be accurate)
 Play makes you declare what data you collect/share and why. **It must match reality** — if you later add

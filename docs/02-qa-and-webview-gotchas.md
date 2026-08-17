@@ -17,7 +17,7 @@ and dead on a real phone — and you won't see it unless you test on a device.
 | Clipboard | **Write** (`writeText`) usually works on a user gesture; **read** is the unreliable one — provide a fallback. |
 | Speech synthesis / audio | Support **varies** — Android System WebView generally has `speechSynthesis`; **iOS WKWebView is the weak/async one** (voices load late). Test on-device or use a TTS plugin. |
 | Notifications | Web Notifications don't fire reliably; use local-notification plugins (and request OS permission). |
-| Back button / gesture | The hardware/gesture back may bypass web history and exit the app. Intercept it natively. |
+| Back button / gesture | The hardware/gesture back may bypass web history and exit the app. Intercept it natively — **and read [the back-navigation trap](#the-back-navigation-trap-the-one-that-cost-us-five-attempts) below, which is the half nobody documents.** |
 | `fetch` + CSP | Your Content-Security-Policy applies in the WebView too — a missing host **silently blocks** requests. |
 | `display-mode: standalone` / install prompts | Detecting "installed" differs; `beforeinstallprompt` never fires on iOS and some browsers, and won't fire once the app is already installed — don't show an "install me" hint based on its absence. |
 
@@ -52,6 +52,70 @@ A no-backend app still fails in the field — and swallowed errors (the villain 
 Add a global `window.onerror` + `unhandledrejection` handler that **surfaces failures to the user**
 (a toast, a retry) and optionally a privacy-respecting, opt-in error log. Otherwise "it just didn't work"
 is all you'll ever hear.
+
+## The back-navigation trap (the one that cost us five attempts)
+
+"Intercept back natively" is the easy half. Here is the hard half, which took **five wrong fixes** on a
+real device before we understood it.
+
+The usual pattern for "back should close my in-app layer instead of leaving the app" is to keep a
+history entry *armed* with `history.pushState`, then close a layer when `popstate` fires. Two things
+will bite you.
+
+### 1. `pushState` without user activation is silently skipped on Android
+
+If you push **one** entry for your whole layer stack and then **re-arm inside the `popstate` handler**,
+that re-arm is a `pushState` with **no user activation**. Chrome on Android marks such entries
+**skippable**, and the next back **skips straight past them** — so back leaves your app from two layers
+deep.
+
+**Do this instead: one entry per layer, pushed when the layer OPENS.** A layer opens from a tap, so the
+push carries user activation and cannot be skipped. Never push from inside `popstate`.
+
+```js
+// depth-based, not a boolean — and armed at open time, under user activation
+let armedDepth = 0;
+function armBack() {
+  const want = openLayerCount();            // count your layers, don't OR them into a boolean
+  while (armedDepth < want) history.pushState({ myBack: ++armedDepth }, "");
+}
+// popstate handler: consume one, close one, and push NOTHING
+window.addEventListener("popstate", () => { if (armedDepth > 0) armedDepth--; closeTopLayer(); });
+```
+
+### 2. One edge swipe reaches your app twice
+
+On Android a left-edge swipe **is** the system back gesture. If you also implement your own edge-swipe
+handler, a single swipe fires **both** — your `touchend` *and* the browser's back via `popstate` — so
+**one gesture closes two layers**. Two layers deep, the next swipe finds nothing to close and falls
+through to the browser, closing the tab or the PWA.
+
+**De-dupe on state, never on a timer.** We tried timers twice and both failed: `touchend` fires when the
+finger lifts, *before* the browser navigates (so "skip if popstate already happened" never fires), and a
+slow deliberate swipe can put the two events **>400ms apart** (so a narrow window misses them). Worse, a
+window wide enough to catch a slow swipe also swallows two *genuine* rapid presses.
+
+```js
+// the browser's own back will deliver popstate — so our handler stands down
+if (isEdgeSwipe && history.state && history.state.myBack) return;
+```
+
+**And register exactly ONE back path per platform.** In a Capacitor build the plugin's `backButton`
+listener owns back; don't also register `popstate`, or you get the same double-close natively.
+
+### 3. Why your test suite cannot see any of this
+
+This is the part worth internalising. Our headless-Chromium gate passed **every time** while the phone
+kept failing, because the skippable-entry intervention is **activation-based and does not apply to
+synthetic navigation**. Four fixes were reasoned from green simulations.
+
+Two consequences:
+
+- **Don't trust a passing browser test for back navigation.** Test the *structural* property your design
+  relies on instead — e.g. "opening two layers pushes two history entries", "the popstate path never
+  pushes". Those are assertable, and they are what removes the need for the fragile behaviour.
+- **Put a real Android emulator in the loop** (see [doc 03](03-release-and-app-stores.md)). A Play Store
+  system image ships real Chrome, which is where the bug lives.
 
 ## The on-device pass (the part the gate can't do)
 Before you trust a store build, do a **manual pass on a physical device** for exactly the
